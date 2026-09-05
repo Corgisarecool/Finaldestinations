@@ -380,13 +380,27 @@ function submitGrave() {
     style="width:100%;margin:8px 0;"
   >
 
-  <button onclick="accountAction()">
-    Continue
-  </button>
+ <button onclick="accountAction()">
+  Continue
+</button>
 
-  <button onclick="closeAccountForm()">
-    Cancel
-  </button>
+<button
+  onclick="resendConfirmation()"
+  style="margin-top:10px;"
+>
+  Resend Confirmation Email
+</button>
+
+<button
+  onclick="forgotPassword()"
+  style="margin-top:10px;"
+>
+  Forgot Password?
+</button>
+
+<button onclick="closeAccountForm()">
+  Cancel
+</button>
 
   <p id="accountMessage"></p>
 
@@ -665,16 +679,15 @@ function submitGrave() {
    */
 
   displayPlaces(places);
+```javascript
 // ==============================
 // SUPABASE ACCOUNT SYSTEM
 // ==============================
 
-// IMPORTANT:
-// Replace these two values with your own
-// Supabase API URL and Publishable Key.
-
 const SUPABASE_URL = "https://qleoakocnvdlozpzqpze.supabase.co";
 const SUPABASE_KEY = "sb_publishable_Kddd4r0vMJnaUaNSSuySZg_1h7VepBB";
+
+const SITE_URL = "https://corgisarecool.github.io/Finaldestinations/";
 
 const supabaseClient = supabase.createClient(
   SUPABASE_URL,
@@ -682,6 +695,10 @@ const supabaseClient = supabase.createClient(
 );
 
 let accountMode = "login";
+
+// ------------------------------
+// OPEN LOGIN
+// ------------------------------
 
 function showLogin() {
   accountMode = "login";
@@ -691,6 +708,10 @@ function showLogin() {
   document.getElementById("accountMessage").textContent = "";
 }
 
+// ------------------------------
+// OPEN SIGNUP
+// ------------------------------
+
 function showSignup() {
   accountMode = "signup";
 
@@ -699,9 +720,17 @@ function showSignup() {
   document.getElementById("accountMessage").textContent = "";
 }
 
+// ------------------------------
+// CLOSE ACCOUNT WINDOW
+// ------------------------------
+
 function closeAccountForm() {
   document.getElementById("accountForm").style.display = "none";
 }
+
+// ------------------------------
+// LOGIN / SIGNUP
+// ------------------------------
 
 async function accountAction() {
 
@@ -722,12 +751,17 @@ async function accountAction() {
 
   message.textContent = "Please wait...";
 
+  // CREATE ACCOUNT
   if (accountMode === "signup") {
 
     const { error } =
       await supabaseClient.auth.signUp({
         email: email,
-        password: password
+        password: password,
+
+        options: {
+          emailRedirectTo: SITE_URL
+        }
       });
 
     if (error) {
@@ -735,31 +769,301 @@ async function accountAction() {
       return;
     }
 
-    message.textContent =
-      "Account created! Check your email to confirm your account.";
+    message.innerHTML =
+      "<span style='color:#315d3a;'>" +
+      "Account created! Check your email and click the confirmation link. " +
+      "You can use the Resend Confirmation button if you don't receive it." +
+      "</span>";
 
-  } else {
-
-    const { error } =
-      await supabaseClient.auth.signUp({
-  email: email,
-  password: password,
-  options: {
-    emailRedirectTo: "https://corgisarecool.github.io/Finaldestinations/"
+    return;
   }
-});
 
-    if (error) {
-      message.textContent = error.message;
+  // LOGIN
+  const { data, error } =
+    await supabaseClient.auth.signInWithPassword({
+      email: email,
+      password: password
+    });
+
+  if (error) {
+
+    // Helpful message if the email hasn't been confirmed yet
+    if (
+      error.message.toLowerCase().includes("email not confirmed")
+    ) {
+      message.innerHTML =
+        "<span style='color:#9b2226;'>" +
+        "Your email has not been confirmed yet. " +
+        "Use the Resend Confirmation Email button below." +
+        "</span>";
       return;
     }
 
+    message.textContent = error.message;
+    return;
+  }
+
+  message.textContent =
+    "You are now logged in!";
+
+  closeAccountForm();
+
+  updateAccountStatus();
+}
+
+// ------------------------------
+// RESEND CONFIRMATION EMAIL
+// ------------------------------
+
+async function resendConfirmation() {
+
+  const email =
+    document.getElementById("accountEmail").value.trim();
+
+  const message =
+    document.getElementById("accountMessage");
+
+  if (!email) {
     message.textContent =
-      "You are now logged in!";
+      "Enter your email address first.";
+    return;
+  }
 
-    closeAccountForm();
+  message.textContent =
+    "Sending confirmation email...";
 
-    updateAccountStatus();
+  const { error } =
+    await supabaseClient.auth.resend({
+      type: "signup",
+
+      email: email,
+
+      options: {
+        emailRedirectTo: SITE_URL
+      }
+    });
+
+  if (error) {
+    message.textContent =
+      error.message;
+    return;
+  }
+
+  message.innerHTML =
+    "<span style='color:#315d3a;'>" +
+    "A new confirmation email has been sent. " +
+    "Check your inbox and spam folder." +
+    "</span>";
+}
+
+// ------------------------------
+// FORGOT PASSWORD
+// ------------------------------
+
+async function forgotPassword() {
+
+  const email =
+    document.getElementById("accountEmail").value.trim();
+
+  const message =
+    document.getElementById("accountMessage");
+
+  if (!email) {
+    message.textContent =
+      "Enter your email address first.";
+    return;
+  }
+
+  message.textContent =
+    "Sending password reset email...";
+
+  const { error } =
+    await supabaseClient.auth.resetPasswordForEmail(
+      email,
+      {
+        redirectTo: SITE_URL
+      }
+    );
+
+  if (error) {
+    message.textContent =
+      error.message;
+    return;
+  }
+
+  message.innerHTML =
+    "<span style='color:#315d3a;'>" +
+    "If an account exists for that email, " +
+    "a password reset email has been sent." +
+    "</span>";
+}
+
+// ------------------------------
+// CHECK FOR EMAIL CONFIRMATION
+// ------------------------------
+
+async function checkEmailConfirmation() {
+
+  const urlParams =
+    new URLSearchParams(window.location.search);
+
+  const hash =
+    window.location.hash;
+
+  // Check for an authentication error
+  if (hash.includes("error=")) {
+
+    const params =
+      new URLSearchParams(
+        hash.substring(1)
+      );
+
+    const errorDescription =
+      params.get("error_description");
+
+    if (errorDescription) {
+
+      const decoded =
+        decodeURIComponent(
+          errorDescription
+        );
+
+      alert(
+        "Email confirmation problem: " +
+        decoded
+      );
+    }
+
+    return;
+  }
+
+  // Check whether Supabase gave us a session
+  const { data } =
+    await supabaseClient.auth.getSession();
+
+  if (data.session) {
+
+    const status =
+      document.getElementById("accountStatus");
+
+    if (status) {
+
+      status.innerHTML =
+        "<strong style='color:#315d3a;'>" +
+        "✓ Email confirmed!" +
+        "</strong> " +
+        "You are signed in as " +
+        "<strong>" +
+        data.session.user.email +
+        "</strong>.";
+    }
+
+    // Remove authentication information from the address bar
+    if (window.location.hash) {
+      history.replaceState(
+        null,
+        "",
+        window.location.pathname
+      );
+    }
+  }
+}
+
+// ------------------------------
+// UPDATE ACCOUNT STATUS
+// ------------------------------
+
+async function updateAccountStatus() {
+
+  const { data } =
+    await supabaseClient.auth.getUser();
+
+  const status =
+    document.getElementById("accountStatus");
+
+  if (!status) return;
+
+  if (data.user) {
+
+    status.innerHTML =
+      "Signed in as <strong>" +
+      data.user.email +
+      "</strong> " +
+      "<button onclick='logout()'>Log Out</button>";
+
+  } else {
+
+    status.textContent =
+      "Not signed in";
+  }
+}
+
+// ------------------------------
+// LOG OUT
+// ------------------------------
+
+async function logout() {
+
+  await supabaseClient.auth.signOut();
+
+  updateAccountStatus();
+}
+
+// ------------------------------
+// AUTH STATE CHANGES
+// ------------------------------
+
+supabaseClient.auth.onAuthStateChange(
+  async (event, session) => {
+
+    if (event === "SIGNED_IN") {
+      updateAccountStatus();
+    }
+
+    if (event === "SIGNED_OUT") {
+      updateAccountStatus();
+    }
+
+    if (event === "PASSWORD_RECOVERY") {
+
+      const newPassword =
+        prompt("Enter your new password:");
+
+      if (!newPassword) return;
+
+      const { error } =
+        await supabaseClient.auth.updateUser({
+          password: newPassword
+        });
+
+      if (error) {
+
+        alert(
+          "Could not change password: " +
+          error.message
+        );
+
+      } else {
+
+        alert(
+          "Your password has been changed successfully!"
+        );
+
+        updateAccountStatus();
+      }
+    }
+  }
+);
+
+// ------------------------------
+// START ACCOUNT SYSTEM
+// ------------------------------
+
+updateAccountStatus();
+
+checkEmailConfirmation();
+```
+
   }
 }
 
