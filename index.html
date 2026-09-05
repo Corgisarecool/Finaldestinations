@@ -1,0 +1,301 @@
+ChatGPT said:
+Great! 👍 Now we're going to put the first version of your atlas on the page.
+Step 4 — Put the code in
+In that big empty box, paste everything below:
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Grave & History Atlas</title>
+
+  <style>
+    * {
+      box-sizing: border-box;
+    }
+
+    body {
+      margin: 0;
+      font-family: Arial, sans-serif;
+      background: #f4f1ea;
+      color: #292821;
+    }
+
+    header {
+      background: #24251f;
+      color: white;
+      padding: 20px;
+      text-align: center;
+    }
+
+    header h1 {
+      margin: 0 0 8px;
+      font-family: Georgia, serif;
+    }
+
+    header p {
+      margin: 0;
+      color: #d8d4c8;
+    }
+
+    .search-area {
+      background: #35372e;
+      padding: 15px;
+      display: flex;
+      gap: 10px;
+      justify-content: center;
+      flex-wrap: wrap;
+    }
+
+    input, select, button {
+      padding: 12px;
+      border-radius: 6px;
+      border: 1px solid #bbb;
+      font-size: 15px;
+    }
+
+    input {
+      width: min(500px, 90vw);
+    }
+
+    button {
+      background: #8b6f47;
+      color: white;
+      border: none;
+      cursor: pointer;
+    }
+
+    button:hover {
+      background: #705735;
+    }
+
+    .layout {
+      display: grid;
+      grid-template-columns: 280px 1fr;
+      min-height: 600px;
+    }
+
+    .filters {
+      background: #e5e0d5;
+      padding: 20px;
+      border-right: 1px solid #c7c1b4;
+    }
+
+    .filters h2 {
+      font-family: Georgia, serif;
+      margin-top: 0;
+    }
+
+    .filters label {
+      display: block;
+      margin: 15px 0 6px;
+      font-weight: bold;
+    }
+
+    .filters select {
+      width: 100%;
+      background: white;
+    }
+
+    .map {
+      position: relative;
+      background:
+        linear-gradient(45deg, #d8d5c8 25%, transparent 25%),
+        linear-gradient(-45deg, #d8d5c8 25%, transparent 25%),
+        linear-gradient(45deg, transparent 75%, #d8d5c8 75%),
+        linear-gradient(-45deg, transparent 75%, #d8d5c8 75%);
+      background-size: 40px 40px;
+      background-position: 0 0, 0 20px, 20px -20px, -20px 0;
+      min-height: 600px;
+      overflow: hidden;
+    }
+
+    .map-title {
+      position: absolute;
+      top: 20px;
+      left: 20px;
+      background: rgba(255,255,255,.9);
+      padding: 10px 15px;
+      border-radius: 6px;
+      box-shadow: 0 2px 8px rgba(0,0,0,.15);
+      font-weight: bold;
+    }
+
+    .pin {
+      position: absolute;
+      width: 20px;
+      height: 20px;
+      background: #8b3a3a;
+      border-radius: 50% 50% 50% 0;
+      transform: rotate(-45deg);
+      cursor: pointer;
+      box-shadow: 0 2px 5px rgba(0,0,0,.3);
+    }
+
+    .pin::after {
+      content: "";
+      position: absolute;
+      width: 8px;
+      height: 8px;
+      background: white;
+      border-radius: 50%;
+      top: 6px;
+      left: 6px;
+    }
+
+    .pin:hover {
+      background: #5d2222;
+      transform: rotate(-45deg) scale(1.2);
+    }
+
+    .info {
+      position: absolute;
+      bottom: 20px;
+      left: 20px;
+      right: 20px;
+      background: rgba(255,255,255,.95);
+      padding: 18px;
+      border-radius: 8px;
+      box-shadow: 0 2px 10px rgba(0,0,0,.2);
+    }
+
+    .info h3 {
+      margin-top: 0;
+      font-family: Georgia, serif;
+    }
+
+    @media (max-width: 700px) {
+      .layout {
+        grid-template-columns: 1fr;
+      }
+
+      .filters {
+        border-right: none;
+        border-bottom: 1px solid #c7c1b4;
+      }
+    }
+  </style>
+</head>
+
+<body>
+
+<header>
+  <h1>Grave & History Atlas</h1>
+  <p>Discover the people, places, and stories hidden around us.</p>
+</header>
+
+<div class="search-area">
+  <input id="search" type="text" placeholder="Search people, places, cemeteries...">
+  <button onclick="searchAtlas()">Search</button>
+</div>
+
+<div class="layout">
+
+  <aside class="filters">
+    <h2>Refine Search</h2>
+
+    <label>Atlas</label>
+    <select id="atlas">
+      <option value="all">Everything</option>
+      <option value="grave">Graves & Cemeteries</option>
+      <option value="history">Historical Places</option>
+    </select>
+
+    <label>Type</label>
+    <select id="type">
+      <option value="all">All types</option>
+      <option value="cemetery">Cemetery</option>
+      <option value="grave">Grave</option>
+      <option value="building">Historic Building</option>
+      <option value="battle">Battle Site</option>
+      <option value="ruin">Ruin</option>
+      <option value="monument">Monument</option>
+    </select>
+
+    <label>Time Period</label>
+    <select id="period">
+      <option value="all">Any period</option>
+      <option value="1600">1600–1700</option>
+      <option value="1700">1700–1800</option>
+      <option value="1800">1800–1900</option>
+      <option value="1900">1900–2000</option>
+      <option value="2000">2000–Present</option>
+    </select>
+
+    <br><br>
+
+    <button onclick="resetFilters()">Reset Filters</button>
+  </aside>
+
+  <main class="map">
+
+    <div class="map-title">
+      🗺️ Explore the Atlas
+    </div>
+
+    <div class="pin"
+         style="left:25%; top:35%;"
+         onclick="showPlace('Old Cemetery','Historic cemetery — example location.')">
+    </div>
+
+    <div class="pin"
+         style="left:55%; top:50%;"
+         onclick="showPlace('Historic Mill','Former industrial site — example location.')">
+    </div>
+
+    <div class="pin"
+         style="left:72%; top:28%;"
+         onclick="showPlace('Revolutionary War Site','Historical site — example location.')">
+    </div>
+
+    <div class="pin"
+         style="left:40%; top:70%;"
+         onclick="showPlace('Unknown Grave','Unidentified historic grave — example location.')">
+    </div>
+
+    <div class="info" id="info">
+      <h3>Welcome to the Atlas</h3>
+      <p>
+        Click a map marker to explore a location.
+        These markers are examples for now. Later we can replace them
+        with real locations and an actual interactive map.
+      </p>
+    </div>
+
+  </main>
+
+</div>
+
+<script>
+  function showPlace(name, description) {
+    document.getElementById("info").innerHTML = `
+      <h3>${name}</h3>
+      <p>${description}</p>
+    `;
+  }
+
+  function searchAtlas() {
+    const search = document.getElementById("search").value;
+
+    if (search.trim() === "") {
+      alert("Type something to search.");
+      return;
+    }
+
+    document.getElementById("info").innerHTML = `
+      <h3>Search</h3>
+      <p>You searched for: <strong>${search}</strong></p>
+      <p>Our full database will be connected here next.</p>
+    `;
+  }
+
+  function resetFilters() {
+    document.getElementById("atlas").value = "all";
+    document.getElementById("type").value = "all";
+    document.getElementById("period").value = "all";
+    document.getElementById("search").value = "";
+  }
+</script>
+
+</body>
+</html>
