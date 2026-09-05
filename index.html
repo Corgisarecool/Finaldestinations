@@ -144,7 +144,185 @@
     }
   </style>
 </head>
+<!-- Submit a Grave -->
+<div style="
+  background:#24251f;
+  color:white;
+  padding:30px 20px;
+  text-align:center;
+  margin-top:0;
+">
+  <h2 style="font-family:Georgia,serif;">
+    Submit a Grave
+  </h2>
 
+  <p>
+    Know a grave that should be included?
+    Submit it for verification.
+  </p>
+
+  <button
+    onclick="document.getElementById('graveForm').style.display='block'"
+    style="
+      background:#8b6f47;
+      color:white;
+      border:0;
+      padding:12px 22px;
+      border-radius:6px;
+      cursor:pointer;
+    "
+  >
+    ➕ Submit a Grave
+  </button>
+</div>
+
+<!-- Grave submission form -->
+<div
+  id="graveForm"
+  style="
+    display:none;
+    max-width:700px;
+    margin:30px auto;
+    padding:25px;
+    background:white;
+    border-radius:10px;
+    box-shadow:0 2px 12px rgba(0,0,0,.15);
+  "
+>
+
+  <h2>Submit a Grave for Verification</h2>
+
+  <p>
+    Your submission will be reviewed before it appears on the atlas.
+  </p>
+
+  <label>Person's Name</label>
+  <input
+    id="submitName"
+    type="text"
+    placeholder="Full name"
+    style="width:100%; margin:6px 0 15px;"
+  >
+
+  <label>Birth Date</label>
+  <input
+    id="submitBirth"
+    type="date"
+    style="width:100%; margin:6px 0 15px;"
+  >
+
+  <label>Death Date</label>
+  <input
+    id="submitDeath"
+    type="date"
+    style="width:100%; margin:6px 0 15px;"
+  >
+
+  <label>Cemetery</label>
+  <input
+    id="submitCemetery"
+    type="text"
+    placeholder="Cemetery name"
+    style="width:100%; margin:6px 0 15px;"
+  >
+
+  <label>Occupations</label>
+  <input
+    id="submitOccupations"
+    type="text"
+    placeholder="Example: farmer, blacksmith"
+    style="width:100%; margin:6px 0 15px;"
+  >
+
+  <label>Short Biography</label>
+  <textarea
+    id="submitShortBio"
+    placeholder="A short summary..."
+    style="width:100%; height:80px; margin:6px 0 15px;"
+  ></textarea>
+
+  <label>Full Biography</label>
+  <textarea
+    id="submitBio"
+    placeholder="Tell the person's story..."
+    style="width:100%; height:180px; margin:6px 0 15px;"
+  ></textarea>
+
+  <label>Grave Description</label>
+  <textarea
+    id="submitDescription"
+    placeholder="Describe the grave, monument, inscription, etc."
+    style="width:100%; height:120px; margin:6px 0 15px;"
+  ></textarea>
+
+  <label>Sources</label>
+  <textarea
+    id="submitSources"
+    placeholder="Books, records, websites, photographs, etc."
+    style="width:100%; height:100px; margin:6px 0 15px;"
+  ></textarea>
+
+  <p>
+    <strong>Location</strong>
+  </p>
+
+  <p style="font-size:14px;color:#666;">
+    Later we'll let contributors click the map to place the grave
+    precisely.
+  </p>
+
+  <button
+    onclick="submitGrave()"
+    style="
+      background:#315d3a;
+      color:white;
+      border:0;
+      padding:13px 25px;
+      border-radius:6px;
+      cursor:pointer;
+    "
+  >
+    Send for Verification
+  </button>
+
+  <button
+    onclick="document.getElementById('graveForm').style.display='none'"
+    style="
+      background:#777;
+      color:white;
+      border:0;
+      padding:13px 25px;
+      border-radius:6px;
+      cursor:pointer;
+      margin-left:8px;
+    "
+  >
+    Cancel
+  </button>
+
+  <div id="submissionMessage" style="margin-top:15px;"></div>
+
+</div>
+
+<script>
+
+function submitGrave() {
+
+  const name =
+    document.getElementById("submitName").value.trim();
+
+  if (!name) {
+    document.getElementById("submissionMessage").innerHTML =
+      "<span style='color:#9b2226;'>Please enter the person's name.</span>";
+    return;
+  }
+
+  document.getElementById("submissionMessage").innerHTML =
+    "<span style='color:#315d3a;'>Thank you! Your grave has been submitted for verification.</span>";
+
+}
+
+</script>
 <body>
 
 <header>
