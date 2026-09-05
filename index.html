@@ -11,6 +11,9 @@
     href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css"
   />
 
+  <!-- Supabase -->
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+
   <style>
     * {
       box-sizing: border-box;
@@ -144,7 +147,172 @@
     }
   </style>
 </head>
-  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+
+<body>
+
+<!-- Account area -->
+<div style="
+  background:#e5e0d5;
+  padding:15px;
+  text-align:right;
+">
+
+  <span id="accountStatus">
+    Not signed in
+  </span>
+
+  <button onclick="showLogin()">
+    Log In
+  </button>
+
+  <button onclick="showSignup()">
+    Create Account
+  </button>
+
+</div>
+
+<!-- Account form -->
+<div
+  id="accountForm"
+  style="
+    display:none;
+    position:fixed;
+    z-index:9999;
+    top:50%;
+    left:50%;
+    transform:translate(-50%,-50%);
+    width:min(400px,90vw);
+    background:white;
+    padding:25px;
+    border-radius:10px;
+    box-shadow:0 5px 30px rgba(0,0,0,.35);
+  "
+>
+
+  <h2 id="accountTitle">Log In</h2>
+
+  <input
+    id="accountEmail"
+    type="email"
+    placeholder="Email address"
+    style="width:100%;margin:8px 0;"
+  >
+
+  <input
+    id="accountPassword"
+    type="password"
+    placeholder="Password"
+    style="width:100%;margin:8px 0;"
+  >
+
+  <button onclick="accountAction()">
+    Continue
+  </button>
+
+  <button
+    id="forgotPasswordButton"
+    onclick="forgotPassword()"
+    style="background:#666;"
+  >
+    Forgot Password?
+  </button>
+
+  <button
+    id="resendButton"
+    onclick="resendConfirmation()"
+    style="background:#315d3a;"
+  >
+    Resend Confirmation
+  </button>
+
+  <button onclick="closeAccountForm()">
+    Cancel
+  </button>
+
+  <p id="accountMessage"></p>
+
+</div>
+
+<header>
+  <h1>Grave & History Atlas</h1>
+  <p>Discover the people, places, and stories hidden around us.</p>
+</header>
+
+<div class="search-area">
+
+  <input
+    id="search"
+    type="text"
+    placeholder="Search people, places, cemeteries..."
+  >
+
+  <button onclick="searchAtlas()">Search</button>
+
+</div>
+
+<div class="layout">
+
+  <aside class="filters">
+
+    <h2>Refine Search</h2>
+
+    <label>Atlas</label>
+
+    <select id="atlas" onchange="filterPlaces()">
+      <option value="all">Everything</option>
+      <option value="grave">Graves & Cemeteries</option>
+      <option value="history">Historical Places</option>
+    </select>
+
+    <label>Type</label>
+
+    <select id="type" onchange="filterPlaces()">
+      <option value="all">All types</option>
+      <option value="cemetery">Cemetery</option>
+      <option value="grave">Grave</option>
+      <option value="building">Historic Building</option>
+      <option value="battle">Battle Site</option>
+      <option value="ruin">Ruin</option>
+      <option value="monument">Monument</option>
+    </select>
+
+    <label>Time Period</label>
+
+    <select id="period" onchange="filterPlaces()">
+      <option value="all">Any period</option>
+      <option value="1600">1600–1700</option>
+      <option value="1700">1700–1800</option>
+      <option value="1800">1800–1900</option>
+      <option value="1900">1900–2000</option>
+      <option value="2000">2000–Present</option>
+    </select>
+
+    <br>
+
+    <button onclick="resetFilters()">Reset Filters</button>
+
+    <div class="legend">
+
+      <strong>Map Key</strong>
+
+      <div>
+        <span class="grave-dot">●</span>
+        Graves & Cemeteries
+      </div>
+
+      <div>
+        <span class="history-dot">●</span>
+        Historical Places
+      </div>
+
+    </div>
+
+  </aside>
+
+  <main id="map"></main>
+
+</div>
+
 <!-- Submit a Grave -->
 <div style="
   background:#24251f;
@@ -153,6 +321,7 @@
   text-align:center;
   margin-top:0;
 ">
+
   <h2 style="font-family:Georgia,serif;">
     Submit a Grave
   </h2>
@@ -175,6 +344,7 @@
   >
     ➕ Submit a Grave
   </button>
+
 </div>
 
 <!-- Grave submission form -->
@@ -198,6 +368,7 @@
   </p>
 
   <label>Person's Name</label>
+
   <input
     id="submitName"
     type="text"
@@ -206,6 +377,7 @@
   >
 
   <label>Birth Date</label>
+
   <input
     id="submitBirth"
     type="date"
@@ -213,6 +385,7 @@
   >
 
   <label>Death Date</label>
+
   <input
     id="submitDeath"
     type="date"
@@ -220,6 +393,7 @@
   >
 
   <label>Cemetery</label>
+
   <input
     id="submitCemetery"
     type="text"
@@ -228,6 +402,7 @@
   >
 
   <label>Occupations</label>
+
   <input
     id="submitOccupations"
     type="text"
@@ -236,6 +411,7 @@
   >
 
   <label>Short Biography</label>
+
   <textarea
     id="submitShortBio"
     placeholder="A short summary..."
@@ -243,6 +419,7 @@
   ></textarea>
 
   <label>Full Biography</label>
+
   <textarea
     id="submitBio"
     placeholder="Tell the person's story..."
@@ -250,6 +427,7 @@
   ></textarea>
 
   <label>Grave Description</label>
+
   <textarea
     id="submitDescription"
     placeholder="Describe the grave, monument, inscription, etc."
@@ -257,6 +435,7 @@
   ></textarea>
 
   <label>Sources</label>
+
   <textarea
     id="submitSources"
     placeholder="Books, records, websites, photographs, etc."
@@ -313,429 +492,334 @@ function submitGrave() {
     document.getElementById("submitName").value.trim();
 
   if (!name) {
+
     document.getElementById("submissionMessage").innerHTML =
       "<span style='color:#9b2226;'>Please enter the person's name.</span>";
+
     return;
   }
 
   document.getElementById("submissionMessage").innerHTML =
     "<span style='color:#315d3a;'>Thank you! Your grave has been submitted for verification.</span>";
-
 }
 
 </script>
-<body>
-<!-- Account area -->
-<div style="
-  background:#e5e0d5;
-  padding:15px;
-  text-align:right;
-">
-
-  <span id="accountStatus">
-    Not signed in
-  </span>
-
-  <button onclick="showLogin()">
-    Log In
-  </button>
-
-  <button onclick="showSignup()">
-    Create Account
-  </button>
-
-</div>
-
-<!-- Account form -->
-<div
-  id="accountForm"
-  style="
-    display:none;
-    position:fixed;
-    z-index:9999;
-    top:50%;
-    left:50%;
-    transform:translate(-50%,-50%);
-    width:min(400px,90vw);
-    background:white;
-    padding:25px;
-    border-radius:10px;
-    box-shadow:0 5px 30px rgba(0,0,0,.35);
-  "
->
-
-  <h2 id="accountTitle">Log In</h2>
-
-  <input
-    id="accountEmail"
-    type="email"
-    placeholder="Email address"
-    style="width:100%;margin:8px 0;"
-  >
-
-  <input
-    id="accountPassword"
-    type="password"
-    placeholder="Password"
-    style="width:100%;margin:8px 0;"
-  >
-
- <button onclick="accountAction()">
-  Continue
-</button>
-
-<button
-  onclick="resendConfirmation()"
-  style="margin-top:10px;"
->
-  Resend Confirmation Email
-</button>
-
-<button
-  onclick="forgotPassword()"
-  style="margin-top:10px;"
->
-  Forgot Password?
-</button>
-
-<button onclick="closeAccountForm()">
-  Cancel
-</button>
-
-  <p id="accountMessage"></p>
-
-</div>
-
-<header>
-  <h1>Grave & History Atlas</h1>
-  <p>Discover the people, places, and stories hidden around us.</p>
-</header>
-
-<div class="search-area">
-  <input
-    id="search"
-    type="text"
-    placeholder="Search people, places, cemeteries..."
-  >
-
-  <button onclick="searchAtlas()">Search</button>
-</div>
-
-<div class="layout">
-
-  <aside class="filters">
-
-    <h2>Refine Search</h2>
-
-    <label>Atlas</label>
-    <select id="atlas" onchange="filterPlaces()">
-      <option value="all">Everything</option>
-      <option value="grave">Graves & Cemeteries</option>
-      <option value="history">Historical Places</option>
-    </select>
-
-    <label>Type</label>
-    <select id="type" onchange="filterPlaces()">
-      <option value="all">All types</option>
-      <option value="cemetery">Cemetery</option>
-      <option value="grave">Grave</option>
-      <option value="building">Historic Building</option>
-      <option value="battle">Battle Site</option>
-      <option value="ruin">Ruin</option>
-      <option value="monument">Monument</option>
-    </select>
-
-    <label>Time Period</label>
-    <select id="period" onchange="filterPlaces()">
-      <option value="all">Any period</option>
-      <option value="1600">1600–1700</option>
-      <option value="1700">1700–1800</option>
-      <option value="1800">1800–1900</option>
-      <option value="1900">1900–2000</option>
-      <option value="2000">2000–Present</option>
-    </select>
-
-    <br>
-
-    <button onclick="resetFilters()">Reset Filters</button>
-
-    <div class="legend">
-      <strong>Map Key</strong>
-
-      <div>
-        <span class="grave-dot">●</span>
-        Graves & Cemeteries
-      </div>
-
-      <div>
-        <span class="history-dot">●</span>
-        Historical Places
-      </div>
-    </div>
-
-  </aside>
-
-  <main id="map"></main>
-
-</div>
 
 <!-- Leaflet -->
 <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
 
 <script>
 
-  /*
-   * SAMPLE DATA
-   *
-   * These are only examples.
-   * Later we will replace this with your real database.
-   */
+/* ==============================
+   SAMPLE DATA
+============================== */
 
-  const places = [
+const places = [
 
-    {
-      name: "Old Cemetery",
-      description: "Example historic cemetery.",
-      category: "grave",
-      type: "cemetery",
-      period: "1800",
-      lat: 41.76,
-      lng: -72.69
-    },
+  {
+    name: "Old Cemetery",
+    description: "Example historic cemetery.",
+    category: "grave",
+    type: "cemetery",
+    period: "1800",
+    lat: 41.76,
+    lng: -72.69
+  },
 
-    {
-      name: "Historic Mill",
-      description: "Example historic industrial site.",
-      category: "history",
-      type: "building",
-      period: "1800",
-      lat: 41.82,
-      lng: -72.64
-    },
+  {
+    name: "Historic Mill",
+    description: "Example historic industrial site.",
+    category: "history",
+    type: "building",
+    period: "1800",
+    lat: 41.82,
+    lng: -72.64
+  },
 
-    {
-      name: "Revolutionary War Site",
-      description: "Example historical site.",
-      category: "history",
-      type: "battle",
-      period: "1700",
-      lat: 41.78,
-      lng: -72.72
-    },
+  {
+    name: "Revolutionary War Site",
+    description: "Example historical site.",
+    category: "history",
+    type: "battle",
+    period: "1700",
+    lat: 41.78,
+    lng: -72.72
+  },
 
-    {
-      name: "Unknown Grave",
-      description: "Example unidentified historic grave.",
-      category: "grave",
-      type: "grave",
-      period: "1900",
-      lat: 41.73,
-      lng: -72.67
-    }
-
-  ];
-
-  /*
-   * CREATE MAP
-   */
-
-  const map = L.map("map").setView([41.76, -72.69], 10);
-
-  L.tileLayer(
-    "https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png",
-    {
-      maxZoom: 19,
-      attribution: '&copy; OpenStreetMap contributors'
-    }
-  ).addTo(map);
-
-  let markers = [];
-
-  /*
-   * DISPLAY PLACES
-   */
-
-  function displayPlaces(list) {
-
-    markers.forEach(marker => map.removeLayer(marker));
-
-    markers = [];
-
-    list.forEach(place => {
-
-      const color =
-        place.category === "grave"
-          ? "#7b3030"
-          : "#315d3a";
-
-      const marker = L.circleMarker(
-        [place.lat, place.lng],
-        {
-          radius: 9,
-          fillColor: color,
-          color: "#ffffff",
-          weight: 2,
-          opacity: 1,
-          fillOpacity: 0.9
-        }
-      );
-
-      marker.bindPopup(`
-        <h3>${place.name}</h3>
-        <p>${place.description}</p>
-        <p>
-          <strong>Type:</strong> ${place.type}<br>
-          <strong>Period:</strong> ${place.period}
-        </p>
-      `);
-
-      marker.addTo(map);
-
-      markers.push(marker);
-    });
+  {
+    name: "Unknown Grave",
+    description: "Example unidentified historic grave.",
+    category: "grave",
+    type: "grave",
+    period: "1900",
+    lat: 41.73,
+    lng: -72.67
   }
 
-  /*
-   * FILTERS
-   */
+];
 
-  function filterPlaces() {
 
-    const atlas = document.getElementById("atlas").value;
-    const type = document.getElementById("type").value;
-    const period = document.getElementById("period").value;
+/* ==============================
+   CREATE MAP
+============================== */
 
-    const filtered = places.filter(place => {
+const map = L.map("map").setView([41.76, -72.69], 10);
 
-      const atlasMatch =
-        atlas === "all" ||
-        place.category === atlas;
-
-      const typeMatch =
-        type === "all" ||
-        place.type === type;
-
-      const periodMatch =
-        period === "all" ||
-        place.period === period;
-
-      return atlasMatch && typeMatch && periodMatch;
-
-    });
-
-    displayPlaces(filtered);
+L.tileLayer(
+  "https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png",
+  {
+    maxZoom: 19,
+    attribution: '&copy; OpenStreetMap contributors'
   }
+).addTo(map);
 
-  /*
-   * SEARCH
-   */
+let markers = [];
 
-  function searchAtlas() {
 
-    const query =
-      document.getElementById("search").value
+/* ==============================
+   DISPLAY PLACES
+============================== */
+
+function displayPlaces(list) {
+
+  markers.forEach(marker => map.removeLayer(marker));
+
+  markers = [];
+
+  list.forEach(place => {
+
+    const color =
+      place.category === "grave"
+        ? "#7b3030"
+        : "#315d3a";
+
+    const marker = L.circleMarker(
+      [place.lat, place.lng],
+      {
+        radius: 9,
+        fillColor: color,
+        color: "#ffffff",
+        weight: 2,
+        opacity: 1,
+        fillOpacity: 0.9
+      }
+    );
+
+    marker.bindPopup(`
+      <h3>${place.name}</h3>
+
+      <p>${place.description}</p>
+
+      <p>
+        <strong>Type:</strong> ${place.type}<br>
+        <strong>Period:</strong> ${place.period}
+      </p>
+    `);
+
+    marker.addTo(map);
+
+    markers.push(marker);
+
+  });
+}
+
+
+/* ==============================
+   FILTERS
+============================== */
+
+function filterPlaces() {
+
+  const atlas =
+    document.getElementById("atlas").value;
+
+  const type =
+    document.getElementById("type").value;
+
+  const period =
+    document.getElementById("period").value;
+
+  const filtered = places.filter(place => {
+
+    const atlasMatch =
+      atlas === "all" ||
+      place.category === atlas;
+
+    const typeMatch =
+      type === "all" ||
+      place.type === type;
+
+    const periodMatch =
+      period === "all" ||
+      place.period === period;
+
+    return atlasMatch && typeMatch && periodMatch;
+
+  });
+
+  displayPlaces(filtered);
+}
+
+
+/* ==============================
+   SEARCH
+============================== */
+
+function searchAtlas() {
+
+  const query =
+    document.getElementById("search").value
       .toLowerCase()
       .trim();
 
-    if (!query) {
-      displayPlaces(places);
-      return;
-    }
-
-    const results = places.filter(place =>
-      place.name.toLowerCase().includes(query) ||
-      place.description.toLowerCase().includes(query) ||
-      place.type.toLowerCase().includes(query)
-    );
-
-    displayPlaces(results);
-
-    if (results.length > 0) {
-      map.setView(
-        [results[0].lat, results[0].lng],
-        12
-      );
-    } else {
-      alert("No locations found.");
-    }
-  }
-
-  /*
-   * RESET
-   */
-
-  function resetFilters() {
-
-    document.getElementById("atlas").value = "all";
-    document.getElementById("type").value = "all";
-    document.getElementById("period").value = "all";
-    document.getElementById("search").value = "";
+  if (!query) {
 
     displayPlaces(places);
+
+    return;
   }
 
-  /*
-   * SHOW INITIAL PLACES
-   */
+  const results = places.filter(place =>
+
+    place.name.toLowerCase().includes(query) ||
+
+    place.description.toLowerCase().includes(query) ||
+
+    place.type.toLowerCase().includes(query)
+
+  );
+
+  displayPlaces(results);
+
+  if (results.length > 0) {
+
+    map.setView(
+      [results[0].lat, results[0].lng],
+      12
+    );
+
+  } else {
+
+    alert("No locations found.");
+
+  }
+}
+
+
+/* ==============================
+   RESET
+============================== */
+
+function resetFilters() {
+
+  document.getElementById("atlas").value = "all";
+  document.getElementById("type").value = "all";
+  document.getElementById("period").value = "all";
+  document.getElementById("search").value = "";
 
   displayPlaces(places);
-```javascript
-// ==============================
-// SUPABASE ACCOUNT SYSTEM
-// ==============================
+}
 
-const SUPABASE_URL = "https://qleoakocnvdlozpzqpze.supabase.co";
-const SUPABASE_KEY = "sb_publishable_Kddd4r0vMJnaUaNSSuySZg_1h7VepBB";
 
-const SITE_URL = "https://corgisarecool.github.io/Finaldestinations/";
+/* ==============================
+   SHOW INITIAL PLACES
+============================== */
 
-const supabaseClient = supabase.createClient(
-  SUPABASE_URL,
-  SUPABASE_KEY
-);
+displayPlaces(places);
+
+
+/* ==============================
+   SUPABASE ACCOUNT SYSTEM
+============================== */
+
+const SUPABASE_URL =
+  "https://qleoakocnvdlozpzqpze.supabase.co";
+
+const SUPABASE_KEY =
+  "sb_publishable_Kddd4r0vMJnaUaNSSuySZg_1h7VepBB";
+
+const SITE_URL =
+  "https://corgisarecool.github.io/Finaldestinations/";
+
+const supabaseClient =
+  supabase.createClient(
+    SUPABASE_URL,
+    SUPABASE_KEY
+  );
 
 let accountMode = "login";
 
-// ------------------------------
-// OPEN LOGIN
-// ------------------------------
+
+/* ==============================
+   SHOW LOGIN
+============================== */
 
 function showLogin() {
+
   accountMode = "login";
 
-  document.getElementById("accountTitle").textContent = "Log In";
-  document.getElementById("accountForm").style.display = "block";
-  document.getElementById("accountMessage").textContent = "";
+  document.getElementById("accountTitle").textContent =
+    "Log In";
+
+  document.getElementById("accountForm").style.display =
+    "block";
+
+  document.getElementById("accountMessage").textContent =
+    "";
+
+  document.getElementById("resendButton").style.display =
+    "none";
+
+  document.getElementById("forgotPasswordButton").style.display =
+    "inline-block";
 }
 
-// ------------------------------
-// OPEN SIGNUP
-// ------------------------------
+
+/* ==============================
+   SHOW SIGNUP
+============================== */
 
 function showSignup() {
+
   accountMode = "signup";
 
-  document.getElementById("accountTitle").textContent = "Create Account";
-  document.getElementById("accountForm").style.display = "block";
-  document.getElementById("accountMessage").textContent = "";
+  document.getElementById("accountTitle").textContent =
+    "Create Account";
+
+  document.getElementById("accountForm").style.display =
+    "block";
+
+  document.getElementById("accountMessage").textContent =
+    "";
+
+  document.getElementById("resendButton").style.display =
+    "inline-block";
+
+  document.getElementById("forgotPasswordButton").style.display =
+    "none";
 }
 
-// ------------------------------
-// CLOSE ACCOUNT WINDOW
-// ------------------------------
+
+/* ==============================
+   CLOSE ACCOUNT FORM
+============================== */
 
 function closeAccountForm() {
-  document.getElementById("accountForm").style.display = "none";
+
+  document.getElementById("accountForm").style.display =
+    "none";
 }
 
-// ------------------------------
-// LOGIN / SIGNUP
-// ------------------------------
+
+/* ==============================
+   LOGIN / SIGNUP
+============================== */
 
 async function accountAction() {
 
   const email =
-    document.getElementById("accountEmail").value.trim();
+    document.getElementById("accountEmail").value
+      .trim();
 
   const password =
     document.getElementById("accountPassword").value;
@@ -744,62 +828,65 @@ async function accountAction() {
     document.getElementById("accountMessage");
 
   if (!email || !password) {
+
     message.textContent =
       "Please enter an email and password.";
+
     return;
   }
 
-  message.textContent = "Please wait...";
+  message.textContent =
+    "Please wait...";
 
-  // CREATE ACCOUNT
+
+  /* CREATE ACCOUNT */
+
   if (accountMode === "signup") {
 
-    const { error } =
+    const { data, error } =
       await supabaseClient.auth.signUp({
+
         email: email,
+
         password: password,
 
         options: {
           emailRedirectTo: SITE_URL
         }
+
       });
 
     if (error) {
-      message.textContent = error.message;
+
+      message.textContent =
+        error.message;
+
       return;
     }
 
     message.innerHTML =
-      "<span style='color:#315d3a;'>" +
-      "Account created! Check your email and click the confirmation link. " +
-      "You can use the Resend Confirmation button if you don't receive it." +
-      "</span>";
+      "Account created! Check your email and click the confirmation link.";
 
     return;
   }
 
-  // LOGIN
-  const { data, error } =
+
+  /* LOGIN */
+
+  const { error } =
     await supabaseClient.auth.signInWithPassword({
+
       email: email,
+
       password: password
+
     });
 
   if (error) {
 
-    // Helpful message if the email hasn't been confirmed yet
-    if (
-      error.message.toLowerCase().includes("email not confirmed")
-    ) {
-      message.innerHTML =
-        "<span style='color:#9b2226;'>" +
-        "Your email has not been confirmed yet. " +
-        "Use the Resend Confirmation Email button below." +
-        "</span>";
-      return;
-    }
+    message.textContent =
+      error.message;
 
-    message.textContent = error.message;
     return;
   }
 
@@ -808,24 +895,28 @@ async function accountAction() {
 
   closeAccountForm();
 
-  updateAccountStatus();
+  await updateAccountStatus();
 }
 
-// ------------------------------
-// RESEND CONFIRMATION EMAIL
-// ------------------------------
+
+/* ==============================
+   RESEND CONFIRMATION
+============================== */
 
 async function resendConfirmation() {
 
   const email =
-    document.getElementById("accountEmail").value.trim();
+    document.getElementById("accountEmail").value
+      .trim();
 
   const message =
     document.getElementById("accountMessage");
 
   if (!email) {
+
     message.textContent =
       "Enter your email address first.";
+
     return;
   }
 
@@ -834,6 +925,7 @@ async function resendConfirmation() {
 
   const { error } =
     await supabaseClient.auth.resend({
+
       type: "signup",
 
       email: email,
@@ -841,36 +933,40 @@ async function resendConfirmation() {
       options: {
         emailRedirectTo: SITE_URL
       }
+
     });
 
   if (error) {
+
     message.textContent =
       error.message;
+
     return;
   }
 
-  message.innerHTML =
-    "<span style='color:#315d3a;'>" +
-    "A new confirmation email has been sent. " +
-    "Check your inbox and spam folder." +
-    "</span>";
+  message.textContent =
+    "A new confirmation email has been sent.";
 }
 
-// ------------------------------
-// FORGOT PASSWORD
-// ------------------------------
+
+/* ==============================
+   FORGOT PASSWORD
+============================== */
 
 async function forgotPassword() {
 
   const email =
-    document.getElementById("accountEmail").value.trim();
+    document.getElementById("accountEmail").value
+      .trim();
 
   const message =
     document.getElementById("accountMessage");
 
   if (!email) {
+
     message.textContent =
       "Enter your email address first.";
+
     return;
   }
 
@@ -886,92 +982,21 @@ async function forgotPassword() {
     );
 
   if (error) {
+
     message.textContent =
       error.message;
-    return;
-  }
-
-  message.innerHTML =
-    "<span style='color:#315d3a;'>" +
-    "If an account exists for that email, " +
-    "a password reset email has been sent." +
-    "</span>";
-}
-
-// ------------------------------
-// CHECK FOR EMAIL CONFIRMATION
-// ------------------------------
-
-async function checkEmailConfirmation() {
-
-  const urlParams =
-    new URLSearchParams(window.location.search);
-
-  const hash =
-    window.location.hash;
-
-  // Check for an authentication error
-  if (hash.includes("error=")) {
-
-    const params =
-      new URLSearchParams(
-        hash.substring(1)
-      );
-
-    const errorDescription =
-      params.get("error_description");
-
-    if (errorDescription) {
-
-      const decoded =
-        decodeURIComponent(
-          errorDescription
-        );
-
-      alert(
-        "Email confirmation problem: " +
-        decoded
-      );
-    }
 
     return;
   }
 
-  // Check whether Supabase gave us a session
-  const { data } =
-    await supabaseClient.auth.getSession();
-
-  if (data.session) {
-
-    const status =
-      document.getElementById("accountStatus");
-
-    if (status) {
-
-      status.innerHTML =
-        "<strong style='color:#315d3a;'>" +
-        "✓ Email confirmed!" +
-        "</strong> " +
-        "You are signed in as " +
-        "<strong>" +
-        data.session.user.email +
-        "</strong>.";
-    }
-
-    // Remove authentication information from the address bar
-    if (window.location.hash) {
-      history.replaceState(
-        null,
-        "",
-        window.location.pathname
-      );
-    }
-  }
+  message.textContent =
+    "Password reset email sent. Check your inbox.";
 }
 
-// ------------------------------
-// UPDATE ACCOUNT STATUS
-// ------------------------------
+
+/* ==============================
+   ACCOUNT STATUS
+============================== */
 
 async function updateAccountStatus() {
 
@@ -980,8 +1005,6 @@ async function updateAccountStatus() {
 
   const status =
     document.getElementById("accountStatus");
-
-  if (!status) return;
 
   if (data.user) {
 
@@ -995,110 +1018,61 @@ async function updateAccountStatus() {
 
     status.textContent =
       "Not signed in";
+
   }
 }
 
-// ------------------------------
-// LOG OUT
-// ------------------------------
+
+/* ==============================
+   LOGOUT
+============================== */
 
 async function logout() {
 
   await supabaseClient.auth.signOut();
 
-  updateAccountStatus();
+  await updateAccountStatus();
 }
 
-// ------------------------------
-// AUTH STATE CHANGES
-// ------------------------------
+
+/* ==============================
+   AUTH STATE CHANGES
+============================== */
 
 supabaseClient.auth.onAuthStateChange(
   async (event, session) => {
 
     if (event === "SIGNED_IN") {
-      updateAccountStatus();
+
+      await updateAccountStatus();
+
     }
 
     if (event === "SIGNED_OUT") {
-      updateAccountStatus();
+
+      await updateAccountStatus();
+
     }
 
     if (event === "PASSWORD_RECOVERY") {
 
-      const newPassword =
-        prompt("Enter your new password:");
+      showLogin();
 
-      if (!newPassword) return;
+      document.getElementById("accountMessage").textContent =
+        "You can now enter your new password.";
 
-      const { error } =
-        await supabaseClient.auth.updateUser({
-          password: newPassword
-        });
-
-      if (error) {
-
-        alert(
-          "Could not change password: " +
-          error.message
-        );
-
-      } else {
-
-        alert(
-          "Your password has been changed successfully!"
-        );
-
-        updateAccountStatus();
-      }
     }
+
   }
 );
 
-// ------------------------------
-// START ACCOUNT SYSTEM
-// ------------------------------
+
+/* ==============================
+   INITIAL ACCOUNT STATUS
+============================== */
 
 updateAccountStatus();
 
-checkEmailConfirmation();
-```
-
-  }
-}
-
-async function updateAccountStatus() {
-
-  const { data } =
-    await supabaseClient.auth.getUser();
-
-  const status =
-    document.getElementById("accountStatus");
-
-  if (data.user) {
-
-    status.innerHTML =
-      "Signed in as <strong>" +
-      data.user.email +
-      "</strong> " +
-      "<button onclick='logout()'>Log Out</button>";
-
-  } else {
-
-    status.textContent =
-      "Not signed in";
-
-  }
-}
-
-async function logout() {
-
-  await supabaseClient.auth.signOut();
-
-  updateAccountStatus();
-}
-
-updateAccountStatus();
 
 </script>
 
