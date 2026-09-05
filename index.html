@@ -325,6 +325,72 @@ function submitGrave() {
 
 </script>
 <body>
+<!-- Account area -->
+<div style="
+  background:#e5e0d5;
+  padding:15px;
+  text-align:right;
+">
+
+  <span id="accountStatus">
+    Not signed in
+  </span>
+
+  <button onclick="showLogin()">
+    Log In
+  </button>
+
+  <button onclick="showSignup()">
+    Create Account
+  </button>
+
+</div>
+
+<!-- Account form -->
+<div
+  id="accountForm"
+  style="
+    display:none;
+    position:fixed;
+    z-index:9999;
+    top:50%;
+    left:50%;
+    transform:translate(-50%,-50%);
+    width:min(400px,90vw);
+    background:white;
+    padding:25px;
+    border-radius:10px;
+    box-shadow:0 5px 30px rgba(0,0,0,.35);
+  "
+>
+
+  <h2 id="accountTitle">Log In</h2>
+
+  <input
+    id="accountEmail"
+    type="email"
+    placeholder="Email address"
+    style="width:100%;margin:8px 0;"
+  >
+
+  <input
+    id="accountPassword"
+    type="password"
+    placeholder="Password"
+    style="width:100%;margin:8px 0;"
+  >
+
+  <button onclick="accountAction()">
+    Continue
+  </button>
+
+  <button onclick="closeAccountForm()">
+    Cancel
+  </button>
+
+  <p id="accountMessage"></p>
+
+</div>
 
 <header>
   <h1>Grave & History Atlas</h1>
@@ -599,6 +665,133 @@ function submitGrave() {
    */
 
   displayPlaces(places);
+// ==============================
+// SUPABASE ACCOUNT SYSTEM
+// ==============================
+
+// IMPORTANT:
+// Replace these two values with your own
+// Supabase API URL and Publishable Key.
+
+const SUPABASE_URL = "https://qleoakocnvdlozpzqpze.supabase.co/rest/v1/";
+const SUPABASE_KEY = "sb_publishable_Kddd4r0vMJnaUaNSSuySZg_1h7VepBB";
+
+const supabaseClient = supabase.createClient(
+  SUPABASE_URL,
+  SUPABASE_KEY
+);
+
+let accountMode = "login";
+
+function showLogin() {
+  accountMode = "login";
+
+  document.getElementById("accountTitle").textContent = "Log In";
+  document.getElementById("accountForm").style.display = "block";
+  document.getElementById("accountMessage").textContent = "";
+}
+
+function showSignup() {
+  accountMode = "signup";
+
+  document.getElementById("accountTitle").textContent = "Create Account";
+  document.getElementById("accountForm").style.display = "block";
+  document.getElementById("accountMessage").textContent = "";
+}
+
+function closeAccountForm() {
+  document.getElementById("accountForm").style.display = "none";
+}
+
+async function accountAction() {
+
+  const email =
+    document.getElementById("accountEmail").value.trim();
+
+  const password =
+    document.getElementById("accountPassword").value;
+
+  const message =
+    document.getElementById("accountMessage");
+
+  if (!email || !password) {
+    message.textContent =
+      "Please enter an email and password.";
+    return;
+  }
+
+  message.textContent = "Please wait...";
+
+  if (accountMode === "signup") {
+
+    const { error } =
+      await supabaseClient.auth.signUp({
+        email: email,
+        password: password
+      });
+
+    if (error) {
+      message.textContent = error.message;
+      return;
+    }
+
+    message.textContent =
+      "Account created! Check your email to confirm your account.";
+
+  } else {
+
+    const { error } =
+      await supabaseClient.auth.signInWithPassword({
+        email: email,
+        password: password
+      });
+
+    if (error) {
+      message.textContent = error.message;
+      return;
+    }
+
+    message.textContent =
+      "You are now logged in!";
+
+    closeAccountForm();
+
+    updateAccountStatus();
+  }
+}
+
+async function updateAccountStatus() {
+
+  const { data } =
+    await supabaseClient.auth.getUser();
+
+  const status =
+    document.getElementById("accountStatus");
+
+  if (data.user) {
+
+    status.innerHTML =
+      "Signed in as <strong>" +
+      data.user.email +
+      "</strong> " +
+      "<button onclick='logout()'>Log Out</button>";
+
+  } else {
+
+    status.textContent =
+      "Not signed in";
+
+  }
+}
+
+async function logout() {
+
+  await supabaseClient.auth.signOut();
+
+  updateAccountStatus();
+}
+
+updateAccountStatus();
 
 </script>
 
